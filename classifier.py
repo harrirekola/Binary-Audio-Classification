@@ -2,6 +2,7 @@ import librosa
 import os
 import numpy as np
 from tensorflow.image import resize
+from sklearn.model_selection import train_test_split
 
 def melspectogram(audio_file):
     target_shape=(128, 128)
@@ -24,3 +25,6 @@ def load_data(dir):
                 labels.append(1)
             data.append(mel_spectrogram)
     return np.array(data), np.array(labels)
+
+X_train, y_train = load_data("training_data")
+X_test, y_test = load_data("testing_data")
