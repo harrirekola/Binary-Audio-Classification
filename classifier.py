@@ -10,13 +10,28 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from sklearn.metrics import classification_report
 
 def melspectogram(audio_file):
-    target_shape=(128, 128)
-    y, sr = librosa.load(audio_file, sr=None)
-    mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=2)
-    mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
-    return mel_spectrogram
+    target_shape = (128, 128)
+    sr_desired = 44100
+    duration_seconds = 5
+    n_samples = sr_desired * duration_seconds
+
+    y, sr = librosa.load(audio_file, sr=sr_desired)
+
+    if len(y) < n_samples:
+        y = np.pad(y, (0, n_samples - len(y)), mode='constant')
+    y = y[:n_samples]
+
+    mel_spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=64)
+
+    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+
+    mel_spec_db = np.expand_dims(mel_spec_db, axis=-1)
+    mel_spec_db = resize(mel_spec_db, target_shape)
+
+    return mel_spec_db
 
 def mfcc_converter_from_array(y, sr):
     target_shape = (128, 128)
